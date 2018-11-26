@@ -27,6 +27,34 @@ module Day4 =
         | "2" -> solve2
         | "1" | _ -> solve1
 
+module Day6 =
+    let solve1 (input: string list) = 
+        let i = input |> List.map (fun s -> Utils.splitBy "	" s |> List.map Int32.Parse)
+
+        let len = i |> List.head |> List.length
+        
+        let rec solve (banks: int list list) =
+            let last = List.last banks
+            let maxi, maxv = last |> List.mapi (fun i v -> i, v) |> List.maxBy snd
+
+            let arr = [| for i in 0 .. (len - 1) -> if i = maxi then 0 else List.item i last |]
+            
+            for i in 1 .. maxv do
+                let idx = (maxi + i) % len
+                arr.[idx] <- arr.[idx] + 1
+
+            let l = List.ofArray arr
+            if (List.contains l banks) then banks.Length else solve (banks@[l])
+        
+        solve i
+
+    let solve2 (input: string list) = 0
+
+    let decide part =
+        match part with
+        | "2" -> solve2
+        | "1" | _ -> solve1
+
 [<EntryPoint>]
 let main argv =
     let day = argv |> Array.head
@@ -35,6 +63,7 @@ let main argv =
     let decider = 
         match day with
         | "4" -> Day4.decide
+        | "6" -> Day6.decide
         | _ -> failwith "wrong day"
     
     let solver = decider part
