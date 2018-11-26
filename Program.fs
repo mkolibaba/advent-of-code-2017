@@ -9,16 +9,18 @@ module Utils =
     let splitBy (ch: string) (str: string) = str.Split([|ch|], StringSplitOptions.None) |> List.ofArray
 
 module Day4 =
-    let solve1 (input: string list) =
+    let solve (input: string list) mapper =
         let (||>>) (l: string list) f = (l, l.Length) |> f
 
         input
         |> List.sumBy (fun s -> 
             Utils.splitBy " " s
+            |> List.map mapper
             ||>> fun (t, l) -> if (t |> List.distinct |> List.length = l) then 1 else 0)
+
+    let solve1 (input: string list) = solve input id
             
-    let solve2 (input: string list) =
-        0 
+    let solve2 (input: string list) = solve input (Seq.sort >> String.Concat)
 
     let decide part =
         match part with
