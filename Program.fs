@@ -2,6 +2,7 @@
 
 open System
 open System.IO
+open System.Text.RegularExpressions
 
 module Utils =
     let readInput day = (sprintf "resources\\input-%s.txt" day) |> File.ReadLines |> List.ofSeq
@@ -57,6 +58,32 @@ module Day6 =
         | "2" -> solve2
         | "1" | _ -> solve1
 
+module Day9 =
+    let solve1 (input: string list) = 
+        let regex str remove = Regex.Replace (str, remove, "")
+
+        let iter1 = regex (input |> List.head) "\!." 
+        let iter2 = regex iter1 "<.*?>"
+        let iter3 = regex iter2 ","
+        printfn "%A" (iter1 |> Seq.take 100 |> String.Concat) 
+        printfn "%A" (iter2 |> Seq.take 100 |> String.Concat) 
+        printfn "%A" (iter3 |> Seq.take 100 |> String.Concat) 
+
+        printfn "%A" iter1.Length
+        printfn "%A" iter2.Length
+        printfn "%A" iter3.Length
+
+        0 // not implemented
+
+    let solve2 (input: string list) = 
+    
+        0 // not implemented
+
+    let decide part =
+        match part with
+        | "2" -> solve2
+        | "1" | _ -> solve1
+
 [<EntryPoint>]
 let main argv =
     let day = argv |> Array.head
@@ -66,6 +93,7 @@ let main argv =
         match day with
         | "4" -> Day4.decide
         | "6" -> Day6.decide
+        | "9" -> Day9.decide
         | _ -> failwith "wrong day"
     
     let solver = decider part
