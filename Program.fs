@@ -28,12 +28,12 @@ module Day4 =
         | "1" | _ -> solve1
 
 module Day6 =
-    let solve1 (input: string list) = 
+    let solve (input: string list) (predicate: int list -> (int list -> bool)) =
         let i = input |> List.map (fun s -> Utils.splitBy "	" s |> List.map Int32.Parse)
 
         let len = i |> List.head |> List.length
         
-        let rec solve (banks: int list list) =
+        let rec solve' (banks: int list list) =
             let last = List.last banks
             let maxi, maxv = last |> List.mapi (fun i v -> i, v) |> List.maxBy snd
 
@@ -44,11 +44,13 @@ module Day6 =
                 arr.[idx] <- arr.[idx] + 1
 
             let l = List.ofArray arr
-            if (List.contains l banks) then banks.Length else solve (banks@[l])
+            if (List.contains l banks) then (banks.Length - List.findIndex (predicate l) banks) else solve' (banks@[l])
         
-        solve i
+        solve' i
 
-    let solve2 (input: string list) = 0
+    let solve1 (input: string list) = solve input (fun _ -> (fun _ -> true))
+
+    let solve2 (input: string list) = solve input (fun l -> (fun li -> li = l))
 
     let decide part =
         match part with
