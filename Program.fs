@@ -59,25 +59,25 @@ module Day6 =
         | "1" | _ -> solve1
 
 module Day9 =
-    let solve1 (input: string list) = 
-        let regex str remove = Regex.Replace (str, remove, "")
+    type State = {depth: int; group: int}
 
-        let iter1 = regex (input |> List.head) "\!." 
-        let iter2 = regex iter1 "<.*?>"
-        let iter3 = regex iter2 ","
-        printfn "%A" (iter1 |> Seq.take 100 |> String.Concat) 
-        printfn "%A" (iter2 |> Seq.take 100 |> String.Concat) 
-        printfn "%A" (iter3 |> Seq.take 100 |> String.Concat) 
+    let solve (input: string list) = 
+        let remove pattern str = Regex.Replace (str, pattern, "")
 
-        printfn "%A" iter1.Length
-        printfn "%A" iter2.Length
-        printfn "%A" iter3.Length
+        let garbaged = input |> List.head |> remove "\!."
 
-        0 // not implemented
+        let step state ch =
+            match ch with
+            | '{' -> {state with depth = state.depth + 1}
+            | '}' -> {depth = state.depth - 1; group = state.group + state.depth}
+            | _ -> state
 
-    let solve2 (input: string list) = 
-    
-        0 // not implemented
+        (garbaged |> remove "<.*?>" |> remove "," |> Seq.fold step {depth = 0; group = 0} |> (fun s -> s.group), 
+            Regex.Matches (garbaged, "<.*?>") |> Seq.sumBy (fun g -> g.Length - 2))
+
+    let solve1 (input: string list) = input |> solve |> fst
+
+    let solve2 (input: string list) = input |> solve |> snd
 
     let decide part =
         match part with
