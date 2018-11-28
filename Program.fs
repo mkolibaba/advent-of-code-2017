@@ -58,6 +58,42 @@ module Day6 =
         | "2" -> solve2
         | "1" | _ -> solve1
 
+module Day8 =
+    type CPU = {registers: Map<string, int>; assigns: int list}
+        with static member register key map = 
+            match Map.tryFind key map with
+            | Some value -> value
+            | None -> 0
+
+    type Condition = {reg: string; op: int -> int -> bool; v: int}
+        with static member passed cond map = cond.op (CPU.register cond.reg map) cond.v
+
+    type Command = {reg: string; op: int -> int -> int; v: int; cond: Condition}
+
+    let solve (input: string list) mapper = 
+        let parseIntOp = function "inc" -> (+) | "dec" | _ -> (-)
+        let parseBoolOp = function ">" -> (>) | "<" -> (<) | ">=" -> (>=) | "<=" -> (<=) | "==" -> (=) | "!=" | _ -> (<>)
+        
+        let create (l: string list) = {reg = l.[0]; op = parseIntOp l.[1]; v = Int32.Parse l.[2]; cond = {reg = l.[4]; op = parseBoolOp l.[5]; v = Int32.Parse l.[6]}}
+
+        let step log com =
+            match Condition.passed com.cond log.registers with
+            | false -> log
+            | true -> 
+                let assignee = com.op (CPU.register com.reg log.registers) com.v
+                {registers = Map.add com.reg assignee log.registers; assigns = assignee::log.assigns}
+
+        input |> List.map (fun s -> Utils.splitBy " " s |> create) |> List.fold step {registers = Map.empty; assigns = []} |> mapper
+
+    let solve1 (input: string list) = solve input (fun l -> l.registers |> Map.toList |> List.maxBy (fun (k, v) -> v) |> snd)
+
+    let solve2 (input: string list) = solve input (fun l -> l.assigns |> List.max)
+
+    let decide part =
+        match part with
+        | "2" -> solve2
+        | "1" | _ -> solve1
+
 module Day9 =
     type State = {depth: int; group: int}
 
@@ -93,6 +129,7 @@ let main argv =
         match day with
         | "4" -> Day4.decide
         | "6" -> Day6.decide
+        | "8" -> Day8.decide
         | "9" -> Day9.decide
         | _ -> failwith "wrong day"
     
