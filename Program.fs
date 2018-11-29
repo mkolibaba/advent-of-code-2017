@@ -6,11 +6,10 @@ open System.Text.RegularExpressions
 
 module Utils =
     let readInput day = (sprintf "resources\\input-%s.txt" day) |> File.ReadLines |> List.ofSeq
-    
     let splitBy (ch: string) (str: string) = str.Split([|ch|], StringSplitOptions.None) |> List.ofArray
 
 module Day4 =
-    let solve (input: string list) mapper =
+    let solve mapper (input: string list) =
         let (||>>) (l: string list) f = (l, l.Length) |> f
 
         input
@@ -19,14 +18,7 @@ module Day4 =
             |> List.map mapper
             ||>> fun (t, l) -> if (t |> List.distinct |> List.length = l) then 1 else 0)
 
-    let solve1 (input: string list) = solve input id
-            
-    let solve2 (input: string list) = solve input (Seq.sort >> String.Concat)
-
-    let decide part =
-        match part with
-        | "2" -> solve2
-        | "1" | _ -> solve1
+    let decide = function | "2" -> solve (Seq.sort >> String.Concat) | "1" | _ -> solve id
 
 module Day6 =
     let solve (input: string list) (predicate: int list -> (int list -> bool)) =
@@ -106,14 +98,7 @@ module Day9 =
         (garbaged |> remove "<.*?>" |> remove "," |> Seq.fold step {depth = 0; group = 0} |> (fun s -> s.group), 
             Regex.Matches (garbaged, "<.*?>") |> Seq.sumBy (fun g -> g.Length - 2))
 
-    let solve1 (input: string list) = input |> solve |> fst
-
-    let solve2 (input: string list) = input |> solve |> snd
-
-    let decide part =
-        match part with
-        | "2" -> solve2
-        | "1" | _ -> solve1
+    let decide = function | "2" -> solve >> snd | "1" | _ -> solve >> fst
 
 module Day10 =
     let solve (input: string list) =
