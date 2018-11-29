@@ -115,6 +115,28 @@ module Day9 =
         | "2" -> solve2
         | "1" | _ -> solve1
 
+module Day10 =
+    let solve (input: string list) =
+        let marksLength = 256
+
+        let swapAt i l = l |> List.splitAt i |> (fun (f, s) -> s@f)
+        let reverseAt i l = l |> List.splitAt i |> (fun (f, s) -> (f |> List.rev)@s)
+
+        let hashing (position, marks) (skip, length) =
+            let next = (position + skip) % marksLength
+            (next + length - 1, marks |> swapAt next |> reverseAt length |> swapAt (marksLength - next))
+
+        input |> List.head |> Utils.splitBy "," |> List.mapi (fun i v -> (i, Int32.Parse v)) |> List.fold hashing (0, [for i in 0 .. marksLength - 1 -> i]) |> snd |> List.take 2 |> List.reduce (*)
+
+    let solve1 input = solve input
+
+    let solve2 input = solve input
+
+    let decide part =
+        match part with
+        | "2" -> solve2
+        | "1" | _ -> solve1
+
 [<EntryPoint>]
 let main argv =
     let day = argv |> Array.head
@@ -126,6 +148,7 @@ let main argv =
         | "6" -> Day6.decide
         | "8" -> Day8.decide
         | "9" -> Day9.decide
+        | "10" -> Day10.decide
         | _ -> failwith "wrong day"
     
     let solver = decider part
