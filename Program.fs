@@ -60,28 +60,23 @@ module Day6 =
 
 module Day8 =
     type CPU = {registers: Map<string, int>; assigns: int list}
-        with static member register key map = 
-            match Map.tryFind key map with
+        with static member register key cpu = 
+            match Map.tryFind key cpu.registers with
             | Some value -> value
             | None -> 0
 
-    type Condition = {reg: string; op: int -> int -> bool; v: int}
-        with static member passed cond map = cond.op (CPU.register cond.reg map) cond.v
-
-    type Command = {reg: string; op: int -> int -> int; v: int; cond: Condition}
+    type Command = {reg: string; apply: int -> int; cond: int -> bool; reg2: string}
 
     let solve (input: string list) mapper = 
         let parseIntOp = function "inc" -> (+) | "dec" | _ -> (-)
         let parseBoolOp = function ">" -> (>) | "<" -> (<) | ">=" -> (>=) | "<=" -> (<=) | "==" -> (=) | "!=" | _ -> (<>)
         
-        let create (l: string list) = {reg = l.[0]; op = parseIntOp l.[1]; v = Int32.Parse l.[2]; cond = {reg = l.[4]; op = parseBoolOp l.[5]; v = Int32.Parse l.[6]}}
+        let create (l: string list) = {reg = l.[0]; apply = (fun rv -> (parseIntOp l.[1]) rv (Int32.Parse l.[2])); cond = (fun rv -> (parseBoolOp l.[5]) rv (Int32.Parse l.[6])); reg2 = l.[4]}
 
-        let step log com =
-            match Condition.passed com.cond log.registers with
-            | false -> log
-            | true -> 
-                let assignee = com.op (CPU.register com.reg log.registers) com.v
-                {registers = Map.add com.reg assignee log.registers; assigns = assignee::log.assigns}
+        let step cpu com =
+            match com.cond (CPU.register com.reg2 cpu) with
+            | false -> cpu
+            | true -> com.apply (CPU.register com.reg cpu) |> (fun a -> {registers = Map.add com.reg a cpu.registers; assigns = a::cpu.assigns})
 
         input |> List.map (fun s -> Utils.splitBy " " s |> create) |> List.fold step {registers = Map.empty; assigns = []} |> mapper
 
