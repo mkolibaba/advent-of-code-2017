@@ -6,7 +6,8 @@ open System.Text.RegularExpressions
 
 module Utils =
     let readInput day = (sprintf "resources\\input-%s.txt" day) |> File.ReadLines |> List.ofSeq
-    let splitBy (ch: string) (str: string) = str.Split([|ch|], StringSplitOptions.None) |> List.ofArray
+    let splitBy (splitter: string) (str: string) = str.Split([|splitter|], StringSplitOptions.None) |> List.ofArray
+    let joinBy (joiner: string) (l: 'a list) = String.Join(joiner, l)
 
 module Day4 =
     let solve mapper = List.sumBy (fun s -> Utils.splitBy " " s |> List.map mapper |> fun l -> if (l |> List.distinct |> List.length = l.Length) then 1 else 0)
@@ -64,16 +65,22 @@ module Day9 =
     let decide = function | "2" -> solve >> snd | "1" | _ -> solve >> fst
 
 module Day10 =
+    type State = {position: int; marks: int list}
     let solve (input: string list) =
         let marksLength = 256
         let swapAt i l = l |> List.splitAt i |> (fun (f, s) -> s@f)
         let reverseAt i l = l |> List.splitAt i |> (fun (f, s) -> (f |> List.rev)@s)
-        let hashing (position, marks) (skip, length) =
-            let next = (position + skip) % marksLength
-            (next + length - 1, marks |> swapAt next |> reverseAt length |> swapAt (marksLength - next))
+        let hashing state (skip, length) =
+            let next = (state.position + skip) % marksLength
+            {position = next + length - 1; marks = state.marks |> swapAt next |> reverseAt length |> swapAt (marksLength - next)}
 
-        input |> List.head |> Utils.splitBy "," |> List.mapi (fun i v -> (i, Int32.Parse v)) |> List.fold hashing (0, [for i in 0 .. marksLength - 1 -> i]) |> snd |> List.take 2 |> List.reduce (*)
-    let decide = function | "2" -> solve | "1" | _ -> solve
+        input |> List.head |> Utils.splitBy "," |> List.mapi (fun i v -> (i, Int32.Parse v)) |> List.fold hashing {position = 0; marks = [for i in 0 .. marksLength - 1 -> i]}
+    let solve1 input = input |> solve |> fun s -> s.marks |> List.take 2 |> List.reduce (*) 
+    let solve2 input = 
+        input |> List.map (fun s -> (s |> Seq.map int |> List.ofSeq) @ [17;31;73;47;23] |> List.replicate 64 |> List.reduce (@) |> Utils.joinBy ",")
+        |> solve |> (fun s -> s.marks) |> List.chunkBySize 16 |> List.map (List.reduce (^^^) >> sprintf "%02x") |> Utils.joinBy "" |> printfn "%A" 
+        0 // answer will be printed out
+    let decide = function | "2" -> solve2 | "1" | _ -> solve1
 
 [<EntryPoint>]
 let main argv =
