@@ -96,6 +96,28 @@ module Day11 =
         input |> List.head |> Utils.splitBy "," |> List.fold step {position = (0, 0, 0); max = 0}
     let decide = function | "2" -> solve >> (fun s -> s.max) | "1" | _ -> solve >> (fun s -> State.distance s.position)
 
+module Day12 =
+    let solve (input: string list) =
+        let trees = 
+            input 
+            |> List.map (fun s -> 
+                let group = Utils.splitBy " <-> " s
+                let value = group |> List.head |> Int32.Parse
+                let leafs = group |> List.last |> Utils.splitBy ", " |> List.map Int32.Parse
+                (value, leafs))
+        trees |> List.take 3 |> printfn "%A"
+
+        let rec visit visited idx input' =
+            let newvisited = visited@[idx]
+            match trees |> List.map snd |> List.filter (fun v -> List.contains v newvisited |> not) with
+            | tovisit when tovisit.Length > 0 -> List.iter (fun v -> visit newvisited v input')
+            | _ -> newvisited
+
+        visit List.empty 0 trees
+        
+        0
+    let decide = function | "2" -> solve | "1" | _ -> solve
+
 [<EntryPoint>]
 let main argv =
     let day = argv |> Array.head
@@ -109,6 +131,7 @@ let main argv =
         | "9" -> Day9.decide
         | "10" -> Day10.decide
         | "11" -> Day11.decide
+        | "12" -> Day12.decide
         | _ -> failwith "wrong day"
     
     let solver = part |> (decider day)
