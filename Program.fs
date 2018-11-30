@@ -32,11 +32,7 @@ module Day6 =
     let decide = function | "2" -> solve (fun l -> (fun li -> li = l)) | "1" | _ -> solve (fun _ -> (fun _ -> true))
 
 module Day8 =
-    type CPU = {registers: Map<string, int>; assigns: int list}
-        with static member register key cpu = 
-            match Map.tryFind key cpu.registers with
-            | Some value -> value
-            | None -> 0
+    type CPU = {registers: Map<string, int>; assigns: int list} with static member register key cpu = Map.tryFind key cpu.registers |> function | Some value -> value | None -> 0
     type Command = {reg: string; apply: int -> int; cond: int -> bool; reg2: string}
     let solve mapper (input: string list) = 
         let parseIntOp = function "inc" -> (+) | "dec" | _ -> (-)
@@ -82,6 +78,24 @@ module Day10 =
         0 // answer will be printed out
     let decide = function | "2" -> solve2 | "1" | _ -> solve1
 
+module Day11 =
+    type State = {position: int * int * int; max: int} with static member distance (x: int, y: int, z: int) = (Math.Abs x + Math.Abs y + Math.Abs z) / 2
+    let solve (input: string list) =
+        let step {position = (x, y, z); max = max} direction =
+            let next =
+                match direction with
+                | "n" -> (x, y + 1, z - 1)
+                | "ne" -> (x + 1, y, z - 1)
+                | "se" -> (x + 1, y - 1, z)
+                | "s" -> (x, y - 1, z + 1)
+                | "sw" -> (x - 1, y, z + 1)
+                | "nw" -> (x - 1, y + 1, z)
+                | _ -> (x, y, z)
+            next |> State.distance |> function | d when d > max -> {position = next; max = d} | _ -> {position = next; max = max}
+
+        input |> List.head |> Utils.splitBy "," |> List.fold step {position = (0, 0, 0); max = 0}
+    let decide = function | "2" -> solve >> (fun s -> s.max) | "1" | _ -> solve >> (fun s -> State.distance s.position)
+
 [<EntryPoint>]
 let main argv =
     let day = argv |> Array.head
@@ -94,6 +108,7 @@ let main argv =
         | "8" -> Day8.decide
         | "9" -> Day9.decide
         | "10" -> Day10.decide
+        | "11" -> Day11.decide
         | _ -> failwith "wrong day"
     
     let solver = part |> (decider day)
