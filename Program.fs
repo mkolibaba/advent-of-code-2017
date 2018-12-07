@@ -97,25 +97,34 @@ module Day11 =
     let decide = function | "2" -> solve >> (fun s -> s.max) | "1" | _ -> solve >> (fun s -> State.distance s.position)
 
 module Day12 =
-    let solve (input: string list) =
-        let graph = 
-            input 
-            |> List.map (fun s -> 
-                let group = Utils.splitBy " <-> " s
-                let value = group |> List.head |> Int32.Parse
-                let edges = group |> List.last |> Utils.splitBy ", " |> List.map Int32.Parse
-                (value, edges))
-
-        let rec dfs discovered (v, e) = [
+    let toGraph = 
+        List.map (fun s -> 
+            let group = Utils.splitBy " <-> " s
+            let value = group |> List.head |> Int32.Parse
+            let edges = group |> List.last |> Utils.splitBy ", " |> List.map Int32.Parse
+            (value, edges))
+    
+    let rec dfs discovered n graph = [
+            let v, e = List.item n graph
             yield v
             let currentDiscovered = Set.add v discovered
             let undiscovered = set e - currentDiscovered
-            for ud in undiscovered do yield! dfs currentDiscovered (List.item ud graph)
+            for ud in undiscovered do yield! dfs currentDiscovered ud graph
         ]
 
-        dfs Set.empty (List.item 0 graph) |> Set.ofList |> Set.count
+    let solve1 = toGraph >> dfs Set.empty 0 >> List.distinct >> List.length
 
-    let decide = function | "2" -> solve | "1" | _ -> solve
+    let solve2 input = 
+        let graph = toGraph input
+
+        let rec loop groups = 
+            let flatgroups = if List.isEmpty groups then List.empty else groups |> List.reduce (@)
+            let left = graph |> List.filter (fun (v, _) -> List.contains v flatgroups |> not)
+            if List.isEmpty left then groups else loop (groups@[dfs Set.empty (left |> List.head |> fst) graph])
+
+        loop List.empty |> List.length
+
+    let decide = function | "2" -> solve2 | "1" | _ -> solve1
 
 [<EntryPoint>]
 let main argv =
