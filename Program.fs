@@ -126,6 +126,11 @@ module Day12 =
 
     let decide = function | "2" -> solve2 | "1" | _ -> solve1
 
+module Day13 =
+    let solve1 = List.map (Utils.splitBy ": ") >> List.map (fun l -> (Int32.Parse l.[0], Int32.Parse l.[1])) >> List.filter (fun (f, s) -> f % (s * 2 - 2) = 0) >> List.sumBy (fun (f, s) -> f * s)
+    let solve2 input = 0
+    let decide = function | "2" -> solve2 | "1" | _ -> solve1
+
 [<EntryPoint>]
 let main argv =
     let day = argv |> Array.head
@@ -140,6 +145,7 @@ let main argv =
         | "10" -> Day10.decide
         | "11" -> Day11.decide
         | "12" -> Day12.decide
+        | "13" -> Day13.decide
         | _ -> failwith "wrong day"
     
     let solver = part |> (decider day)
