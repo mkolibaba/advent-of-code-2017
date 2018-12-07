@@ -98,31 +98,22 @@ module Day11 =
 
 module Day12 =
     let solve (input: string list) =
-        let vertices = 
+        let graph = 
             input 
             |> List.map (fun s -> 
                 let group = Utils.splitBy " <-> " s
                 let value = group |> List.head |> Int32.Parse
                 let edges = group |> List.last |> Utils.splitBy ", " |> List.map Int32.Parse
                 (value, edges))
-        
-        let rec dfs value discovered vertices =
-            let dsc = value::discovered
-            //for all edges from v to w in G.adjacentEdges(v) do
-//          if vertex w is not labeled as discovered then
-//             recursively call DFS(G,w)
-            let ve = List.item value vertices
-            let e = snd ve
 
-            match e with
-            | [] -> 
+        let rec dfs discovered (v, e) = [
+            yield v
+            let currentDiscovered = Set.add v discovered
+            let undiscovered = set e - currentDiscovered
+            for ud in undiscovered do yield! dfs currentDiscovered (List.item ud graph)
+        ]
 
-
-
-            
-            0
-
-        dfs 0 List.empty vertices
+        dfs Set.empty (List.item 0 graph) |> Set.ofList |> Set.count
 
     let decide = function | "2" -> solve | "1" | _ -> solve
 
